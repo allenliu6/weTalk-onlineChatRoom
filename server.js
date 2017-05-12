@@ -14,20 +14,28 @@ var io = sio.listen(server)
 
 io.sockets.on('connection', function(socket){
     socket.on('login', function(name, fn){
-        socket.name = name
-        userList[name] = true
-        fn(name)
-        io.sockets.emit('login', {userList, name})
+        if(userList[name]){
+            socket.emit('nameRepeat', name)
+        }else{
+            socket.name = name
+            userList[name] = true
+            fn(name)
+            io.sockets.emit('login', {userList, name})
+        }
     })
     socket.on('logout', function(name){
-        delete userList[name]
-        io.sockets.emit('logout', name) 
+        if(userList[name]){
+            delete userList[name]
+            io.sockets.emit('logout', name)
+        }
     })
     socket.on('message', function(msg){
         io.sockets.emit('message', {name: socket.name, message: msg})
     })
     socket.on('disconnect', function(){
-        delete userList[socket.name]
-        io.sockets.emit('logout', socket.name)
+        if(userList[socket.name]){
+            delete userList[socket.name]
+            io.sockets.emit('logout', socket.name)
+        }
     })
 })
